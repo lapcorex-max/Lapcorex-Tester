@@ -26,3 +26,24 @@ footer b span {
     text-shadow: 0 0 5px #a94cff, 0 0 12px #8c2cff, 0 0 20px #8c2cff;
   }
 }
+footer b {
+  animation: neonBlink 0.8s infinite !important;
+}
+
+footer b span {
+  color: #a83cff !important;
+}
+
+@keyframes neonBlink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px #a83cff)
+            drop-shadow(0 0 12px #a83cff)
+            drop-shadow(0 0 22px #d06bff);
+  }
+
+  50% {
+    opacity: 0.2;
+    filter: none;
+  }
+}
