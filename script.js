@@ -2,8 +2,8 @@ const $ = (selector) => document.querySelector(selector);
 const modal = $('#test-modal');
 const content = $('#modal-content');
 let webcamStream, micStream, audioContext, animationId, keyboardHandler;
-let visitorEstimate=Math.floor(Math.random()*79)+118;
-function updateVisitors(){visitorEstimate=Math.max(118,Math.min(196,visitorEstimate+Math.floor(Math.random()*7)-3));const count=$('#visitor-count');if(count)count.textContent=visitorEstimate;}
+let visitorEstimate = Math.floor(Math.random() * 75001) + 25000;
+function updateVisitors(){visitorEstimate=Math.max(25000,Math.min(100000,visitorEstimate+Math.floor(Math.random()*7)-3));const count=$('#visitor-count');if(count)count.textContent=visitorEstimate;}
 
 function updateClock() { const now = new Date(); $('#current-time').textContent = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}); $('#current-date').textContent = now.toLocaleDateString([], {day:'2-digit',month:'long',year:'numeric'}); $('#current-day').textContent = now.toLocaleDateString([], {weekday:'long'}); const uptime=$('#uptime');if(uptime){const seconds=Math.floor(performance.now()/1000),hours=String(Math.floor(seconds/3600)).padStart(2,'0'),minutes=String(Math.floor(seconds%3600/60)).padStart(2,'0'),secs=String(seconds%60).padStart(2,'0');uptime.textContent=`${hours}:${minutes}:${secs}`;} }
 function browserName(){ const ua=navigator.userAgent; if(ua.includes('Edg/'))return 'Microsoft Edge'; if(ua.includes('Chrome/'))return 'Google Chrome'; if(ua.includes('Firefox/'))return 'Firefox'; return 'Web Browser'; }
