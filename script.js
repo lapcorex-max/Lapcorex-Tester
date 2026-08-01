@@ -51,7 +51,13 @@ window.addEventListener('keydown',keyboardHandler);
 }
 function mouse(){openModal(`<h2>Mouse / Touchpad Test</h2><p>Move, click, double-click and scroll inside the zone.</p><div class="test-zone" id="mouse-zone"><h3 id="mouse-status">Move your pointer here</h3><p id="mouse-pos">X: 0 · Y: 0</p></div>`);const z=$('#mouse-zone');z.onmousemove=e=>{const r=z.getBoundingClientRect();$('#mouse-pos').textContent=`X: ${Math.round(e.clientX-r.left)} · Y: ${Math.round(e.clientY-r.top)}`;$('#mouse-status').textContent='Movement detected ✓'};z.onmousedown=e=>$('#mouse-status').textContent=['Left click ✓','Middle click ✓','Right click ✓'][e.button]||'Click detected';z.onwheel=e=>{$('#mouse-status').textContent=e.deltaY>0?'Scroll down ✓':'Scroll up ✓';e.preventDefault()};z.oncontextmenu=e=>e.preventDefault();}
 function display(){
+const win = window.open("", "_blank");
 
+if (win.document.documentElement.requestFullscreen) {
+    setTimeout(() => {
+        win.document.documentElement.requestFullscreen();
+    }, 300);
+}
 openModal(`
 <h2>LCD / Display Diagnostic</h2>
 
