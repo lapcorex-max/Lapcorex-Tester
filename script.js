@@ -3,6 +3,8 @@ const modal = $('#test-modal');
 const content = $('#modal-content');
 let webcamStream, micStream, audioContext, animationId, keyboardHandler;
 let visitorEstimate = Math.floor(Math.random() * 75001) + 25000;
+const startedTests = new Set();
+const testNames = { keyboard: 'Keyboard Test', mouse: 'Mouse / Touchpad Test', display: 'LCD / Display Test', speaker: 'Speaker Test', microphone: 'Microphone Test', webcam: 'Webcam Test', system: 'System Information', battery: 'Battery Test', wifi: 'WiFi / Network Test' };
 
 function updateVisitors() {
   visitorEstimate = Math.max(25000, Math.min(100000, visitorEstimate + Math.floor(Math.random() * 7) - 3));
@@ -388,15 +390,42 @@ function wifi() {
   openModal(`<h2>WiFi / Network Test</h2><p>Checking your browser’s current network connection.</p><div class="test-zone"><b>Status:</b> ${navigator.onLine ? 'Online ✓' : 'Offline'}<br><b>Type:</b> ${navigator.connection?.effectiveType || 'Unknown'}<br><b>Estimated speed:</b> ${navigator.connection?.downlink ? `${navigator.connection.downlink} Mbps` : 'Not available'}<br><b>Latency:</b> ${navigator.connection?.rtt ? `${navigator.connection.rtt} ms` : 'Not available'}</div>`);
 }
 
-function report() {
-  const reportText = `LAPCOREX LAPTOP TEST REPORT\nGenerated: ${new Date().toLocaleString()}\n\nPlatform: ${navigator.platform}\nBrowser: ${browserName()}\nCPU Threads: ${navigator.hardwareConcurrency || 'Unknown'}\nMemory: ${navigator.deviceMemory || 'Unknown'} GB\nScreen: ${screen.width} x ${screen.height}\nNetwork: ${navigator.onLine ? 'Online' : 'Offline'}`;
-  const blob = new Blob([reportText], { type: 'text/plain' });
+async function report() {
+  const escapeHtml = (value) => String(value ?? 'Not available').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+  let batteryData = { level: 'Not available', state: 'Not supported', remaining: 'Not available' };
+  let storageData = { used: 'Not available', quota: 'Not available' };
+  try {
+    const batteryStatus = await navigator.getBattery?.();
+    if (batteryStatus) {
+      const minutes = batteryStatus.charging ? batteryStatus.chargingTime : batteryStatus.dischargingTime;
+      batteryData = {
+        level: `${Math.round(batteryStatus.level * 100)}%`,
+        state: batteryStatus.charging ? 'Charging' : 'Running on battery',
+        remaining: isFinite(minutes) ? `${Math.floor(minutes / 3600)}h ${Math.round(minutes % 3600 / 60)}m` : 'Not available'
+      };
+    }
+  } catch {}
+  try {
+    const estimate = await navigator.storage?.estimate();
+    if (estimate) storageData = { used: estimate.usage ? `${(estimate.usage / 1024 ** 3).toFixed(2)} GB` : '0 GB', quota: estimate.quota ? `${(estimate.quota / 1024 ** 3).toFixed(2)} GB` : 'Not available' };
+  } catch {}
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const tested = Object.entries(testNames).map(([key, name]) => `<tr><td>${escapeHtml(name)}</td><td class="${startedTests.has(key) ? 'pass' : 'muted'}">${startedTests.has(key) ? 'Opened / checked' : 'Not run'}</td></tr>`).join('');
+  const generated = new Date();
+  const reportHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lapcorex Diagnostic Report</title><style>body{margin:0;background:#f2f3f8;color:#17203a;font:14px/1.45 Arial,sans-serif}.page{max-width:850px;margin:28px auto;background:#fff;box-shadow:0 4px 26px #17203a24}.head{padding:30px 36px;background:linear-gradient(120deg,#10052b,#5d1a9e);color:#fff}.head h1{margin:0;font-size:30px;letter-spacing:.5px}.head p{margin:6px 0 0;color:#e4caff}.content{padding:30px 36px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{border:1px solid #dce0ec;border-radius:10px;padding:16px}.card h2{font-size:14px;margin:0 0 11px;color:#741ecc;text-transform:uppercase;letter-spacing:.7px}.row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #edf0f6}.row:first-of-type{border-top:0}.row span{color:#667085}.row b{text-align:right;word-break:break-word}table{width:100%;border-collapse:collapse;border:1px solid #dce0ec;border-radius:10px;overflow:hidden;margin-top:22px}th,td{padding:11px 13px;text-align:left;border-bottom:1px solid #e7eaf2}th{background:#f5f1fb;color:#5b168f;font-size:12px;text-transform:uppercase;letter-spacing:.5px}.pass{color:#087d3e;font-weight:bold}.muted{color:#7b8498}.note{margin-top:22px;padding:13px 15px;border-left:4px solid #8c31da;background:#faf6ff;color:#625576}.foot{padding:18px 36px;background:#f7f8fb;color:#687187;font-size:12px}@media(max-width:620px){.page{margin:0}.grid{grid-template-columns:1fr}.head,.content,.foot{padding-left:20px;padding-right:20px}}@media print{body{background:#fff}.page{margin:0;box-shadow:none;max-width:none}}</style></head><body><main class="page"><header class="head"><h1>LAPCOREX DIAGNOSTIC REPORT</h1><p>Generated locally in your browser • ${escapeHtml(generated.toLocaleString())}</p></header><section class="content"><div class="grid"><section class="card"><h2>Device & Browser</h2><div class="row"><span>Platform</span><b>${escapeHtml(navigator.platform)}</b></div><div class="row"><span>Browser</span><b>${escapeHtml(browserName())}</b></div><div class="row"><span>Logical CPU cores</span><b>${escapeHtml(navigator.hardwareConcurrency || 'Not available')}</b></div><div class="row"><span>Device memory</span><b>${escapeHtml(navigator.deviceMemory ? `${navigator.deviceMemory} GB` : 'Not available')}</b></div></section><section class="card"><h2>Display</h2><div class="row"><span>Resolution</span><b>${screen.width} × ${screen.height}</b></div><div class="row"><span>Available display</span><b>${screen.availWidth} × ${screen.availHeight}</b></div><div class="row"><span>Color depth</span><b>${escapeHtml(screen.colorDepth)}-bit</b></div><div class="row"><span>Touch points</span><b>${escapeHtml(navigator.maxTouchPoints || 0)}</b></div></section><section class="card"><h2>Battery</h2><div class="row"><span>Current charge</span><b>${escapeHtml(batteryData.level)}</b></div><div class="row"><span>Power state</span><b>${escapeHtml(batteryData.state)}</b></div><div class="row"><span>Estimated time</span><b>${escapeHtml(batteryData.remaining)}</b></div></section><section class="card"><h2>Network & Storage</h2><div class="row"><span>Connection</span><b>${navigator.onLine ? 'Online' : 'Offline'}</b></div><div class="row"><span>Network type</span><b>${escapeHtml(connection?.effectiveType?.toUpperCase() || 'Not available')}</b></div><div class="row"><span>Storage used</span><b>${escapeHtml(storageData.used)}</b></div><div class="row"><span>Storage quota</span><b>${escapeHtml(storageData.quota)}</b></div></section></div><table><thead><tr><th>Diagnostic test</th><th>Status</th></tr></thead><tbody>${tested}</tbody></table><p class="note"><b>Important:</b> This browser report contains only values websites are allowed to access. SSD SMART health, battery cycle count, design capacity, and full-charge capacity require a native desktop diagnostic tool.</p></section><footer class="foot">LAPCOREX Laptop Tester • This report was generated locally and no device data was uploaded.</footer></main></body></html>`;
+  const blob = new Blob([reportHtml], { type: 'text/html' });
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob); link.download = 'Lapcorex_Test_Report.txt'; link.click(); URL.revokeObjectURL(link.href);
+  const stamp = generated.toISOString().slice(0, 10);
+  link.href = URL.createObjectURL(blob); link.download = `Lapcorex_Diagnostic_Report_${stamp}.html`; link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
 const actions = { keyboard, mouse, display, speaker, microphone, webcam, system: systemInfo, battery, wifi, report };
-document.querySelectorAll('.test-card').forEach((button) => button.onclick = () => actions[button.dataset.test]?.());
+document.querySelectorAll('.test-card').forEach((button) => button.onclick = () => {
+  const test = button.dataset.test;
+  if (test !== 'report' && testNames[test]) startedTests.add(test);
+  actions[test]?.();
+});
 $('.close').onclick = closeModal;
 modal.onclick = (event) => { if (event.target === modal) closeModal(); };
 window.addEventListener('keydown', (event) => { if (event.key === 'Escape') { event.preventDefault(); closeModal(); } });
