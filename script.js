@@ -51,13 +51,7 @@ window.addEventListener('keydown',keyboardHandler);
 }
 function mouse(){openModal(`<h2>Mouse / Touchpad Test</h2><p>Move, click, double-click and scroll inside the zone.</p><div class="test-zone" id="mouse-zone"><h3 id="mouse-status">Move your pointer here</h3><p id="mouse-pos">X: 0 · Y: 0</p></div>`);const z=$('#mouse-zone');z.onmousemove=e=>{const r=z.getBoundingClientRect();$('#mouse-pos').textContent=`X: ${Math.round(e.clientX-r.left)} · Y: ${Math.round(e.clientY-r.top)}`;$('#mouse-status').textContent='Movement detected ✓'};z.onmousedown=e=>$('#mouse-status').textContent=['Left click ✓','Middle click ✓','Right click ✓'][e.button]||'Click detected';z.onwheel=e=>{$('#mouse-status').textContent=e.deltaY>0?'Scroll down ✓':'Scroll up ✓';e.preventDefault()};z.oncontextmenu=e=>e.preventDefault();}
 function display(){
-const win = window.open("", "_blank");
 
-if (win.document.documentElement.requestFullscreen) {
-    setTimeout(() => {
-        win.document.documentElement.requestFullscreen();
-    }, 300);
-}
 openModal(`
 <h2>LCD / Display Diagnostic</h2>
 
@@ -114,7 +108,9 @@ function wifi(){openModal(`<h2>WiFi / Network Test</h2><p>Checking your browser�
 function report(){const report=`LAPCOREX LAPTOP TEST REPORT\nGenerated: ${new Date().toLocaleString()}\n\nPlatform: ${navigator.platform}\nBrowser: ${browserName()}\nCPU Threads: ${navigator.hardwareConcurrency||'Unknown'}\nMemory: ${navigator.deviceMemory||'Unknown'} GB\nScreen: ${screen.width} x ${screen.height}\nNetwork: ${navigator.onLine?'Online':'Offline'}`;const blob=new Blob([report],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Lapcorex_Test_Report.txt';a.click();URL.revokeObjectURL(a.href);}
 const actions={keyboard,mouse,display,speaker,microphone,webcam,system:systemInfo,battery,wifi,report};document.querySelectorAll('.test-card').forEach(b=>b.onclick=()=>actions[b.dataset.test]());$('.close').onclick=closeModal;modal.onclick=e=>{if(e.target===modal)closeModal()};window.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeModal()}});window.addEventListener('online',loadDashboard);window.addEventListener('offline',loadDashboard);updateClock();updateVisitors();setInterval(updateClock,1000);setInterval(updateVisitors,2800);loadDashboard();
 function startColorTest(){
-
+if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+}
 const colors=[
 "#000",
 "#fff",
@@ -156,7 +152,11 @@ show();
   function startDeadPixelTest(){
 
 const win=window.open("","_blank");
-
+setTimeout(() => {
+    if (win.document.documentElement.requestFullscreen) {
+        win.document.documentElement.requestFullscreen().catch(() => {});
+    }
+}, 300);
 win.document.write(`
 #backBtn{
     position:fixed;
@@ -219,7 +219,11 @@ ctx.fillRect(x,y,2,2);
  function startDotTest(){
 
 const win=window.open("","_blank");
-
+setTimeout(() => {
+    if (win.document.documentElement.requestFullscreen) {
+        win.document.documentElement.requestFullscreen().catch(() => {});
+    }
+}, 300);
 win.document.write(`
 
 <body style="margin:0;background:black;">
@@ -244,7 +248,11 @@ box-shadow:0 0 12px white;
   function startTouchTest(){
 
 const win=window.open("","_blank");
-
+setTimeout(() => {
+    if (win.document.documentElement.requestFullscreen) {
+        win.document.documentElement.requestFullscreen().catch(() => {});
+    }
+}, 300);
 win.document.write(`
 
 <body style="
