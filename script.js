@@ -158,7 +158,26 @@ show();
 const win=window.open("","_blank");
 
 win.document.write(`
+#backBtn{
+    position:fixed;
+    top:20px;
+    left:20px;
+    z-index:9999;
+    padding:12px 22px;
+    border:none;
+    border-radius:10px;
+    background:#962eff;
+    color:#fff;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 0 20px #962eff;
+    transition:.3s;
+}
 
+#backBtn:hover{
+    transform:scale(1.08);
+}
 <body style="
 margin:0;
 background:black;
