@@ -150,7 +150,9 @@ show();
 
 }
   function startDeadPixelTest(){
-
+if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+}
 const win=window.open("","_blank");
 setTimeout(() => {
     if (win.document.documentElement.requestFullscreen) {
@@ -217,7 +219,9 @@ ctx.fillRect(x,y,2,2);
 
 }
  function startDotTest(){
-
+if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+}
 const win=window.open("","_blank");
 setTimeout(() => {
     if (win.document.documentElement.requestFullscreen) {
@@ -246,7 +250,9 @@ box-shadow:0 0 12px white;
 
 }
   function startTouchTest(){
-
+if (document.documentElement.requestFullscreen) {
+    document.documentElement.requestFullscreen().catch(() => {});
+}
 const win=window.open("","_blank");
 setTimeout(() => {
     if (win.document.documentElement.requestFullscreen) {
