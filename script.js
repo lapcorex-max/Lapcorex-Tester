@@ -50,7 +50,49 @@ content.querySelectorAll('.key[data-code]').forEach(key=>key.addEventListener('c
 window.addEventListener('keydown',keyboardHandler);
 }
 function mouse(){openModal(`<h2>Mouse / Touchpad Test</h2><p>Move, click, double-click and scroll inside the zone.</p><div class="test-zone" id="mouse-zone"><h3 id="mouse-status">Move your pointer here</h3><p id="mouse-pos">X: 0 · Y: 0</p></div>`);const z=$('#mouse-zone');z.onmousemove=e=>{const r=z.getBoundingClientRect();$('#mouse-pos').textContent=`X: ${Math.round(e.clientX-r.left)} · Y: ${Math.round(e.clientY-r.top)}`;$('#mouse-status').textContent='Movement detected ✓'};z.onmousedown=e=>$('#mouse-status').textContent=['Left click ✓','Middle click ✓','Right click ✓'][e.button]||'Click detected';z.onwheel=e=>{$('#mouse-status').textContent=e.deltaY>0?'Scroll down ✓':'Scroll up ✓';e.preventDefault()};z.oncontextmenu=e=>e.preventDefault();}
-function display(){const colors=['#000000','#ffffff','#ef2632','#19bd5d','#2572ff','#f4d000','#962eff'];let n=0;const box=$('#color-test'),name=$('#color-name');const show=()=>{box.style.background=colors[n];name.textContent=`${['Black','White','Red','Green','Blue','Yellow','Purple'][n]} · click anywhere or press →`;name.style.color=n===1?'#111':'#fff'};box.classList.add('open');show();const next=()=>{n=(n+1)%colors.length;show()};box.onclick=next;const key=e=>{if(e.key==='ArrowRight'||e.key===' '){next()}if(e.key==='Escape'){exit()}};const exit=()=>{box.classList.remove('open');box.onclick=null;window.removeEventListener('keydown',key)};$('#exit-color').onclick=e=>{e.stopPropagation();exit()};window.addEventListener('keydown',key);}
+function display(){
+
+openModal(`
+<h2>LCD / Display Diagnostic</h2>
+
+<p>Select any display test.</p>
+
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:25px;">
+
+<button class="action-btn" id="colorTestBtn">
+🎨 Color Test
+</button>
+
+<button class="action-btn" id="pixelTestBtn">
+🟥 Dead Pixel Test
+</button>
+
+<button class="action-btn" id="dotTestBtn">
+⚪ Pixel Dot Test
+</button>
+
+<button class="action-btn" id="touchTestBtn">
+👆 Touch Screen Test
+</button>
+
+</div>
+
+`);
+  document.getElementById("colorTestBtn").onclick=()=>{
+startColorTest();
+};
+
+document.getElementById("pixelTestBtn").onclick=()=>{
+startDeadPixelTest();
+};
+
+document.getElementById("dotTestBtn").onclick=()=>{
+startDotTest();
+};
+
+document.getElementById("touchTestBtn").onclick=()=>{
+startTouchTest();
+};
 function speaker(){openModal(`<h2>Speaker Test</h2><p>Play a short, comfortable tone through each channel.</p><button class="action-btn" data-tone="-1">◀ Left</button><button class="action-btn" data-tone="0">◉ Both</button><button class="action-btn" data-tone="1">Right ▶</button><p id="speaker-status">Choose a channel, then listen for the tone.</p>`);content.querySelectorAll('[data-tone]').forEach(b=>b.onclick=()=>{const A=window.AudioContext||window.webkitAudioContext;if(!A)return; audioContext=new A();const o=audioContext.createOscillator(),g=audioContext.createGain(),p=audioContext.createStereoPanner();o.frequency.value=440;g.gain.value=.1;p.pan.value=Number(b.dataset.tone);o.connect(g).connect(p).connect(audioContext.destination);o.start();$('#speaker-status').textContent='Tone playing…';setTimeout(()=>{o.stop();audioContext.close();audioContext=null;$('#speaker-status').textContent='Tone complete.'},1200)})}
 async function webcam(){openModal(`<h2>Webcam Test</h2><p>Allow camera access to see the live preview.</p><button class="action-btn" id="start-camera">Start camera</button><p id="camera-status">Camera is not started.</p><video id="camera" autoplay muted playsinline style="width:100%;border-radius:13px;display:none;background:#000"></video>`);$('#start-camera').onclick=async()=>{try{webcamStream=await navigator.mediaDevices.getUserMedia({video:true});$('#camera').srcObject=webcamStream;$('#camera').style.display='block';$('#camera-status').textContent='Camera is working ✓'}catch{$('#camera-status').textContent='Camera permission was not granted.'}}}
 async function microphone(){openModal(`<h2>Microphone Test</h2><p>Allow access and speak into your microphone.</p><button class="action-btn" id="start-mic">Start microphone</button><div class="meter"><i id="mic-meter"></i></div><p id="mic-status">Microphone is not started.</p>`);$('#start-mic').onclick=async()=>{try{micStream=await navigator.mediaDevices.getUserMedia({audio:true});const A=window.AudioContext||window.webkitAudioContext;audioContext=new A();const a=audioContext.createAnalyser();audioContext.createMediaStreamSource(micStream).connect(a);const data=new Uint8Array(a.fftSize);const tick=()=>{a.getByteTimeDomainData(data);let total=0;data.forEach(v=>total+=(v-128)**2);$('#mic-meter').style.width=Math.min(100,Math.sqrt(total/data.length)*2)+'%';animationId=requestAnimationFrame(tick)};tick();$('#mic-status').textContent='Microphone connected ✓'}catch{$('#mic-status').textContent='Microphone permission was not granted.'}}}
@@ -64,3 +106,164 @@ async function battery(){
 function wifi(){openModal(`<h2>WiFi / Network Test</h2><p>Checking your browser’s current network connection.</p><div class="test-zone"><b>Status:</b> ${navigator.onLine?'Online ✓':'Offline'}<br><b>Type:</b> ${navigator.connection?.effectiveType||'Unknown'}<br><b>Estimated speed:</b> ${navigator.connection?.downlink?`${navigator.connection.downlink} Mbps`:'Not available'}<br><b>Latency:</b> ${navigator.connection?.rtt?`${navigator.connection.rtt} ms`:'Not available'}</div>`)}
 function report(){const report=`LAPCOREX LAPTOP TEST REPORT\nGenerated: ${new Date().toLocaleString()}\n\nPlatform: ${navigator.platform}\nBrowser: ${browserName()}\nCPU Threads: ${navigator.hardwareConcurrency||'Unknown'}\nMemory: ${navigator.deviceMemory||'Unknown'} GB\nScreen: ${screen.width} x ${screen.height}\nNetwork: ${navigator.onLine?'Online':'Offline'}`;const blob=new Blob([report],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Lapcorex_Test_Report.txt';a.click();URL.revokeObjectURL(a.href);}
 const actions={keyboard,mouse,display,speaker,microphone,webcam,system:systemInfo,battery,wifi,report};document.querySelectorAll('.test-card').forEach(b=>b.onclick=()=>actions[b.dataset.test]());$('.close').onclick=closeModal;modal.onclick=e=>{if(e.target===modal)closeModal()};window.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeModal()}});window.addEventListener('online',loadDashboard);window.addEventListener('offline',loadDashboard);updateClock();updateVisitors();setInterval(updateClock,1000);setInterval(updateVisitors,2800);loadDashboard();
+function startColorTest(){
+
+const colors=[
+"#000",
+"#fff",
+"#ff0000",
+"#00ff00",
+"#0000ff",
+"#ffff00",
+"#8000ff"
+];
+
+let i=0;
+
+const box=document.getElementById("color-test");
+
+const text=document.getElementById("color-name");
+
+box.classList.add("open");
+
+function show(){
+
+box.style.background=colors[i];
+
+text.innerHTML=
+"Click anywhere to change color";
+
+}
+
+show();
+
+box.onclick=()=>{
+
+i=(i+1)%colors.length;
+
+show();
+
+};
+
+}
+  function startDeadPixelTest(){
+
+const win=window.open("","_blank");
+
+win.document.write(`
+
+<body style="
+margin:0;
+background:black;
+overflow:hidden;
+cursor:none;
+">
+
+<canvas id="c"></canvas>
+
+<script>
+
+let canvas=document.getElementById("c");
+
+canvas.width=innerWidth;
+
+canvas.height=innerHeight;
+
+let ctx=canvas.getContext("2d");
+
+for(let x=0;x<innerWidth;x+=4){
+
+for(let y=0;y<innerHeight;y+=4){
+
+ctx.fillStyle=Math.random()>0.5?"white":"black";
+
+ctx.fillRect(x,y,2,2);
+
+}
+
+}
+
+<\/script>
+
+</body>
+
+`);
+
+}
+ function startDotTest(){
+
+const win=window.open("","_blank");
+
+win.document.write(`
+
+<body style="margin:0;background:black;">
+
+<div style="
+width:3px;
+height:3px;
+background:white;
+border-radius:50%;
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+box-shadow:0 0 12px white;
+"></div>
+
+</body>
+
+`);
+
+}
+  function startTouchTest(){
+
+const win=window.open("","_blank");
+
+win.document.write(`
+
+<body style="
+margin:0;
+background:black;
+overflow:hidden;
+touch-action:none;
+">
+
+<script>
+
+document.body.ontouchmove=function(e){
+
+for(let t of e.touches){
+
+let d=document.createElement("div");
+
+d.style.position="absolute";
+
+d.style.left=t.clientX+"px";
+
+d.style.top=t.clientY+"px";
+
+d.style.width="40px";
+
+d.style.height="40px";
+
+d.style.borderRadius="50%";
+
+d.style.background="#9b3cff";
+
+d.style.boxShadow="0 0 25px #9b3cff";
+
+document.body.appendChild(d);
+
+setTimeout(()=>d.remove(),600);
+
+}
+
+}
+
+<\/script>
+
+</body>
+
+`);
+
+}
