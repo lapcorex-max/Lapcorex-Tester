@@ -177,7 +177,7 @@ function display() {
 function openDisplayTest(test) {
   const tests = {
     color: { title: 'Color / RGB Test', label: 'Color / RGB Test', hint: 'Click, Space, or arrow keys to cycle colors.', kind: 'color' },
-    dead: { title: 'Dead Pixel Test', label: 'Dead Pixel Test', hint: 'Cycle solid colors and inspect the full panel for stuck or dead pixels.', kind: 'color' },
+    dead: { title: 'Dead Pixel Test', label: 'Dead Pixel Test', hint: 'A dense pixel pattern makes isolated stuck/dead pixels easier to spot. Click or use arrow keys to change the pattern.', kind: 'dead' },
     dot: { title: 'Pixel Dot Test', label: 'Pixel Dot Test', hint: 'Use Space or arrow keys to change the dot color.', kind: 'dot' },
     touch: { title: 'Touch Screen Test', label: 'Touch Screen Test', hint: 'Draw anywhere with one or more fingers, a pen, or a mouse.', kind: 'touch' },
     grid: { title: 'Grid / Alignment Test', label: 'Grid / Alignment Test', hint: 'Use Space or arrow keys to change grid contrast.', kind: 'grid' }
@@ -236,7 +236,16 @@ function openDisplayTest(test) {
     ['Light grid', '#f7f7f7', 'rgba(0,0,0,.18)', 'rgba(0,0,0,.38)'],
     ['Red grid', '#100000', 'rgba(255,70,70,.28)', 'rgba(255,70,70,.5)']
   ];
+  const deadPatterns = [
+    ['Black / white pixels', '#000', '#fff', 2],
+    ['White / black pixels', '#fff', '#000', 2],
+    ['Red / black pixels', '#000', '#ff2020', 2],
+    ['Green / black pixels', '#000', '#20ff50', 2],
+    ['Blue / black pixels', '#000', '#2380ff', 2],
+    ['Large contrast grid', '#080808', '#f5f5f5', 6]
+  ];
   let gridIndex = 0;
+  let deadIndex = 0;
 
   function setLabel(text, darkText = false) { label.textContent = text; label.style.color = darkText ? '#111' : '#fff'; label.style.background = darkText ? 'rgba(255,255,255,.62)' : 'rgba(0,0,0,.58)'; }
   function requestFullScreen() {
@@ -271,6 +280,16 @@ function openDisplayTest(test) {
     const dot = document.getElementById('dot'); dot.style.background = color; dot.style.boxShadow = '0 0 13px 4px ' + color;
     setLabel('Pixel Dot Test: ' + name + ' dot — ' + config.hint);
   }
+  function showDead() {
+    const [name, base, pixel, size] = deadPatterns[deadIndex];
+    stage.className = 'dead';
+    stage.innerHTML = '';
+    stage.style.backgroundColor = base;
+    stage.style.backgroundImage = 'linear-gradient(45deg,' + pixel + ' 25%,transparent 25%,transparent 75%,' + pixel + ' 75%),linear-gradient(45deg,' + pixel + ' 25%,transparent 25%,transparent 75%,' + pixel + ' 75%)';
+    stage.style.backgroundSize = (size * 2) + 'px ' + (size * 2) + 'px';
+    stage.style.backgroundPosition = '0 0,' + size + 'px ' + size + 'px';
+    setLabel('Dead Pixel Test: ' + name + ' — ' + config.hint);
+  }
   function showGrid() {
     const [name, background, small, large] = gridThemes[gridIndex];
     stage.className = 'grid'; stage.innerHTML = '<i id="cross-h"></i><i id="cross-v"></i>';
@@ -296,10 +315,12 @@ function openDisplayTest(test) {
   function cycle(direction) {
     if (config.kind === 'color') { colorIndex = (colorIndex + direction + colors.length) % colors.length; showColor(); }
     if (config.kind === 'dot') { colorIndex = (colorIndex + direction + colors.length) % colors.length; showDot(); }
+    if (config.kind === 'dead') { deadIndex = (deadIndex + direction + deadPatterns.length) % deadPatterns.length; showDead(); }
     if (config.kind === 'grid') { gridIndex = (gridIndex + direction + gridThemes.length) % gridThemes.length; showGrid(); }
   }
   if (config.kind === 'color') { showColor(); stage.addEventListener('click', () => cycle(1)); }
   if (config.kind === 'dot') { showDot(); stage.addEventListener('click', () => cycle(1)); }
+  if (config.kind === 'dead') { showDead(); stage.addEventListener('click', () => cycle(1)); }
   if (config.kind === 'grid') { showGrid(); stage.addEventListener('click', () => cycle(1)); }
   if (config.kind === 'touch') showTouch();
   requestFullScreen();
